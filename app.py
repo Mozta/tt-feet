@@ -45,6 +45,20 @@ def read():
     except Exception as e:
         return f"An Error Occured: {e}"
 
+@app.route('/listn', methods=['GET'])
+def read():
+    """
+        read() : Fetches documents from Firestore collection as JSON
+        todo : Return document that matches query ID
+        all_todos : Return all documents
+    """
+    try:
+        # Check if ID was passed to URL query
+        todo_id = todo_ref.document('1').collection('testing').get()
+        return jsonify(todo_id), 200
+    except Exception as e:
+        return f"An Error Occured: {e}"
+
 @app.route('/update', methods=['POST', 'PUT'])
 def update():
     """
