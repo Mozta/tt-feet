@@ -1,5 +1,4 @@
 # app.py
-#API INSOLE
 # Required Imports
 import os
 from flask import Flask, request, jsonify
