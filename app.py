@@ -26,6 +26,15 @@ def create():
     except Exception as e:
         return f"An Error Occured: {e}"
 
+@app.route('/addn', methods=['POST'])
+def crear():
+    try:
+        press = request.json['press']
+        todo_ref.document('1').collection('testing').document('press').set(request.json)
+        return jsonify({"success": True}), 200
+    except Exception as e:
+        return f"An Error Occured: {e}"
+
 @app.route('/list', methods=['GET'])
 def read():
     """
@@ -49,7 +58,7 @@ def read():
 def lee():
     try:
         # Check if ID was passed to URL query
-        todo_id = todo_ref.document('1').get()
+        todo_id = todo_ref.document('1').collection('testing').document('press').get()
         resultado = u'Document data: {}'.format(todo_id.to_dict())
         return jsonify(resultado), 200
     except Exception as e:
