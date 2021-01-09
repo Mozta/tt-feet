@@ -2,6 +2,7 @@
 #API INSOLE
 # Required Imports
 import os
+from random import randint
 from flask import Flask, request, jsonify
 from firebase_admin import credentials, firestore, initialize_app
 # Initialize Flask App
@@ -11,6 +12,8 @@ cred = credentials.Certificate('key.json')
 default_app = initialize_app(cred)
 db = firestore.client()
 todo_ref = db.collection('todos')
+tt_ref = db.collection('TTInsole')
+msj_ref = db.collection('messages')
 
 @app.route('/add', methods=['POST'])
 def create():
@@ -29,8 +32,31 @@ def create():
 @app.route('/addn', methods=['POST'])
 def crear():
     try:
-        press = request.json['press']
-        todo_ref.document('1').collection('testing').document('press').set(request.json)
+        #obtengo numserie y codigo de alerta
+        num_serie = request.json['ns']
+        code_msj = request.json['warn']
+        #Consulta uid
+        userid = tt_ref.document("micros/ns/"+num_serie).collections()
+        uid = list(userid)[0].id
+        #print(uid)
+        print(request.json['warn'])
+        #establecer data en el usuario
+        #tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/hum").update({'hder':request.json['hder']})
+        #tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/temp").update({'tder':request.json['tder']})
+        tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/press").set({'piz':request.json['piz']})
+        #press = request.json['press']
+
+        #print(request.json)
+        #todo_ref.document('1').collection('testing').document('press').set('press':)
+
+        def detect_alert(arg, uid):
+            muid = str(randint(1, 1000))
+            msj_ref.document("msj"+muid).set({'cmsj': arg, 'userUid': uid})
+
+        if code_msj != 0:
+            detect_alert(code_msj,uid)
+        
+
         return jsonify({"success": True}), 200
     except Exception as e:
         return f"An Error Occured: {e}"
@@ -58,9 +84,10 @@ def read():
 def lee():
     try:
         # Check if ID was passed to URL query
-        todo_id = todo_ref.document('1').collection('testing').document('press').get()
-        resultado = u'Document data: {}'.format(todo_id.to_dict())
-        return jsonify(resultado), 200
+        #todo_id = todo_ref.document('1').get()
+        todo_id = todo_ref.document('1').collection('testing').get()
+        #resultado = u'Document data: {}'.format(todo_id.to_dict())
+        return jsonify(todo_id.to_dict()), 200
     except Exception as e:
         return f"An Error Occured: {e}"
 
