@@ -3,6 +3,7 @@
 # Required Imports
 import os
 from random import randint
+import numpy as np
 from flask import Flask, request, jsonify
 from firebase_admin import credentials, firestore, initialize_app
 # Initialize Flask App
@@ -25,6 +26,19 @@ def create():
     try:
         id = request.json['id']
         todo_ref.document(id).set(request.json)
+
+        #### ----------- Obten num_serie y usurio vinculado ----------- #####
+        num_serie = request.json['ns']
+        userid = tt_ref.document("micros/ns/"+num_serie).collections()
+        uid = list(userid)[0].id
+        #print(uid)
+        temp_new = request.json['temp']
+        hum_new = request.json['hum']
+
+
+        tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/hum").update({'hder':hum_new})
+        tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/temp").update({'tder':request.json['temp']})
+
         return jsonify({"success": True}), 200
     except Exception as e:
         return f"An Error Occured: {e}"
@@ -32,29 +46,89 @@ def create():
 @app.route('/addn', methods=['POST'])
 def crear():
     try:
-        #obtengo numserie y codigo de alerta
+        #### ----------- Obten num_serie y usurio vinculado ----------- #####
         num_serie = request.json['ns']
-        code_msj = request.json['warn']
-        #Consulta uid
         userid = tt_ref.document("micros/ns/"+num_serie).collections()
         uid = list(userid)[0].id
         #print(uid)
-        print(request.json['warn'])
-        #establecer data en el usuario
-        #tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/hum").update({'hder':request.json['hder']})
-        #tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/temp").update({'tder':request.json['tder']})
-        tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/press").set({'piz':request.json['piz']})
-        #press = request.json['press']
+
+        #### ----------- Obten variables nuevas del pie ----------- #####
+        temp_new = request.json['temp']
+        hum_new = request.json['hum']
+        press_new = request.json['press']
+
+        #### ----------- Obten variables pasadas del mismo pie ----------- #####
+        temp_old = tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/temp").get()
+        press_old = tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/press").get()
+        hum_old = tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/hum").get()
+
+        temp_old = temp_old.to_dict()
+        press_old = press_old.to_dict()
+        hum_old = hum_old.to_dict()
+
+        temp_old = temp_old['tder']
+        press_old = press_old['hder']
+        hum_old = hum_old['pder']
+        #press_old = np.reshape(press_old, (20,7))
+
+        #### ----------- Obten variables pasadas contralaterales ----------- #####
+        if int(num_serie[2]) % 2 != 0:
+            ns_cont = "mc" + str(int(num_serie[2])+1)
+        else:
+            ns_cont = "mc" + str(int(num_serie[2])-1)
+
+        temp_con = tt_ref.document("micros/ns/"+ns_cont+"/"+uid+"/temp").get()
+        press_con = tt_ref.document("micros/ns/"+ns_cont+"/"+uid+"/press").get()
+        hum_con = tt_ref.document("micros/ns/"+ns_cont+"/"+uid+"/hum").get()
+
+        temp_con = temp_con.to_dict()
+        press_con = press_con.to_dict()
+        hum_con = hum_con.to_dict()
+
+        temp_con = temp_con['tder']
+        press_con = press_con['hder']
+        hum_con = hum_con['pder']
+        #press_con = np.reshape(press_der, (20,7))
+
+        #### ----------- Entrada a función de detección ----------- #####
+        #det(temp_new,press_new,hum_new,temp_old,press_old,hum_old,temp_con,press_con,hum_con)
+
+       
+        #### ----------- Promedio general de variables ----------- #####
+        if int(num_serie[2]) % 2 != 0:
+            print("holi, soy impar")
+            gral = request.json['gral']
+            prom_gral(num_serie,gral,uid)
+
+        #### ----------- Establecer data en el usuario ----------- #####
+        if int(num_serie[2]) % 2 != 0:
+            #IMPAR
+            tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/hum").update({'hder':request.json['hder']})
+            tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/temp").update({'tder':request.json['tder']})
+            tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/press").update({'pder':request.json['pder']})
+        else:
+            #PAR
+            tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/hum").update({'hder':request.json['hder']})
+            tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/temp").update({'tder':request.json['tder']})
+            tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/press").update({'piz':request.json['piz']})
+
+
+        
+            
+
+
+       
+
 
         #print(request.json)
         #todo_ref.document('1').collection('testing').document('press').set('press':)
 
-        def detect_alert(arg, uid):
-            muid = str(randint(1, 1000))
-            msj_ref.document("msj"+muid).set({'cmsj': arg, 'userUid': uid})
+        # def detect_alert(arg, uid):
+        #     muid = str(randint(1, 1000))
+        #     msj_ref.document("msj"+muid).set({'cmsj': arg, 'userUid': uid})
 
-        if code_msj != 0:
-            detect_alert(code_msj,uid)
+        # if code_msj != 0:
+        #     detect_alert(code_msj,uid)
         
 
         return jsonify({"success": True}), 200
@@ -76,7 +150,7 @@ def read():
             return jsonify(todo.to_dict()), 200
         else:
             all_todos = [doc.to_dict() for doc in todo_ref.stream()]
-            return jsonify(all_todos), 200
+            return jsonify(all_todos), 200  
     except Exception as e:
         return f"An Error Occured: {e}"
 
@@ -84,10 +158,41 @@ def read():
 def lee():
     try:
         # Check if ID was passed to URL query
-        #todo_id = todo_ref.document('1').get()
-        todo_id = todo_ref.document('1').collection('testing').get()
-        #resultado = u'Document data: {}'.format(todo_id.to_dict())
-        return jsonify(todo_id.to_dict()), 200
+
+        #### ----------- Obten variables pasadas del mismo pie ----------- #####
+        temp_der = tt_ref.document('micros/ns/mc1/IhvATIUo5tRBhadQgH84ngOWaT82/temp').get()
+        press_der = tt_ref.document('micros/ns/mc1/IhvATIUo5tRBhadQgH84ngOWaT82/press').get()
+        hum_der = tt_ref.document('micros/ns/mc1/IhvATIUo5tRBhadQgH84ngOWaT82/hum').get()
+
+        temp_der = temp_der.to_dict()
+        press_der = press_der.to_dict()
+        hum_der = hum_der.to_dict()
+
+        temp_der = temp_der['tder']
+        hum_der = hum_der['hder']
+        press_der = press_der['pder']
+        #press_der = np.reshape(press_der, (20,7))
+
+
+        #### ----------- Obten variables pasadas contralaterales ----------- #####
+        temp_der_con = tt_ref.document('micros/ns/mc2/IhvATIUo5tRBhadQgH84ngOWaT82/temp').get()
+        press_der_con = tt_ref.document('micros/ns/mc2/IhvATIUo5tRBhadQgH84ngOWaT82/press').get()
+        hum_der_con = tt_ref.document('micros/ns/mc2/IhvATIUo5tRBhadQgH84ngOWaT82/hum').get()
+
+        temp_der_con = temp_der_con.to_dict()
+        press_der_con = press_der_con.to_dict()
+        hum_der_con = hum_der_con.to_dict()
+
+        temp_der_con = temp_der_con['tder']
+        hum_der_con = hum_der_con['hder']
+        press_der_con = press_der_con['pder']
+        #press_der_con = np.reshape(press_der, (20,7))
+
+        
+
+
+        print(temp_der['tder'])
+        return jsonify(temp_der), 200
     except Exception as e:
         return f"An Error Occured: {e}"
 
@@ -117,7 +222,30 @@ def delete():
         return jsonify({"success": True}), 200
     except Exception as e:
         return f"An Error Occured: {e}"
+
+
+#### ----------- Función Promedio general de variables ----------- #####
+def prom_gral(num_serie,gral,uid):
+    num_serie2 = "mc" + str(int(num_serie[2])+1)
+    gral2 = [0,0,0]
+    info_gral = [0,0,0]
+    #gral = request.json['gral']
+    ctrltral = tt_ref.document("micros/ns/"+num_serie2+"/"+uid+"/gral").get()
+    ctrltral = ctrltral.to_dict()
+    gral2[0] = ctrltral['batt']
+    gral2[1] = ctrltral['humg']
+    gral2[2] = ctrltral['tempg']
+
+    info_gral[0] = round((gral[0] + gral2[0]) / 2)
+    info_gral[1] = round((gral[1] + gral2[1]) / 2)
+    info_gral[2] = (gral[2] + gral2[2]) / 2
+
+    tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/gral").update({'batt':info_gral[0], 'humg':info_gral[1], 'tempg':info_gral[2]})
+
+    print(info_gral)
         
+
+
 port = int(os.environ.get('PORT', 8080))
 if __name__ == '__main__':
     app.run(threaded=True, host='0.0.0.0', port=port)
