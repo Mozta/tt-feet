@@ -50,7 +50,6 @@ def crear():
         num_serie = request.json['ns']
         userid = tt_ref.document("micros/ns/"+num_serie).collections()
         uid = list(userid)[0].id
-        #print(uid)
 
         #### ----------- Obten variables nuevas del pie ----------- #####
         temp_new = request.json['temp']
@@ -86,39 +85,28 @@ def crear():
         hum_con = hum_con['pder']
 
         #### ----------- Entrada a función de detección ----------- #####
-        code_msj = det(num_serie,temp_new,press_new,hum_new,temp_old,press_old,hum_old,temp_con,hum_con)
+        [code_msj,nivel_riesgo] = det(num_serie,temp_new,press_new,hum_new,temp_old,press_old,hum_old,temp_con,hum_con)
         if code_msj != 27:
             detect_alert(code_msj,uid)
-
        
         #### ----------- Promedio general de variables ----------- #####
-        if int(num_serie[2]) % 2 != 0:
-            gral = request.json['gral']
-            prom_gral(num_serie,gral,uid)
+        if nivel_riesgo == 0:
+            if int(num_serie[2]) % 2 != 0:
+                gral = request.json['gral']
+                prom_gral(num_serie,gral,uid)
 
         #### ----------- Establecer data en el usuario ----------- #####
-        if int(num_serie[2]) % 2 != 0:
-            #IMPAR
-            tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/hum").update({'hder':request.json['hder']})
-            tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/temp").update({'tder':request.json['tder']})
-            tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/press").update({'pder':request.json['pder']})
-        else:
-            #PAR
-            tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/hum").update({'hder':request.json['hder']})
-            tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/temp").update({'tder':request.json['tder']})
-            tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/press").update({'piz':request.json['piz']})
-
-
-        
-            
-
-
-       
-
-
-        #print(request.json)
-        #todo_ref.document('1').collection('testing').document('press').set('press':)
-        
+        if nivel_riesgo == 0:
+            if int(num_serie[2]) % 2 != 0:
+                #IMPAR
+                tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/hum").update({'hder':request.json['hum']})
+                tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/temp").update({'tder':request.json['temp']})
+                tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/press").update({'pder':request.json['press']})
+            else:
+                #PAR
+                tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/hum").update({'hizq':request.json['hum']})
+                tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/temp").update({'tizq':request.json['temp']})
+                tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/press").update({'piz':request.json['press']})
 
         return jsonify({"success": True}), 200
     except Exception as e:
@@ -222,13 +210,13 @@ def prom_gral(num_serie,gral,uid):
 
     info_gral[0] = round((gral[0] + gral2[0]) / 2)
     info_gral[1] = round((gral[1] + gral2[1]) / 2)
-    info_gral[2] = (gral[2] + gral2[2]) / 2
+    info_gral[2] = round(((gral[2] + gral2[2]) / 2),1)
 
     tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/gral").update({'batt':info_gral[0], 'humg':info_gral[1], 'tempg':info_gral[2]})
 
     #print(info_gral)
 
-#### ----------- Función Promedio general de variables ----------- #####
+#### ----------- Función notificación de alerta ----------- #####
 def detect_alert(arg, uid):
     muid = str(randint(1, 1000))
     msj_ref.document("msj"+muid).set({'cmsj': arg, 'userUid': uid})

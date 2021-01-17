@@ -83,7 +83,7 @@ exports.sendNotificationToFCMToken = functions.firestore.document('messages/{mUi
 
     var message = {
         notification: {
-            title: "Diafeetis Notification",
+            title: "Diafeetis Notificación",
             body: alertmsg,
         },
         token: fcmToken,

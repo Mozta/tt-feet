@@ -1,11 +1,13 @@
+import numpy as np
 def det (num_serie,presion_old,temperatura_old,humedad_old,presion_new,temperatura_new,humedad_new,temperatura_cont,humedad_cont):
-    import numpy as np
+    
     umbral_pres = 3
     umbral_temp = 2.2
     umbral_hum = 5
-    umbral_sis = 3
+    umbral_sis = 2
+    anormal = 0
 
-    #convertir vector de presion a matriz de 7x20
+    #convertir vector de presion actual a matriz de 7x20
     if int(num_serie[2]) % 2 != 0:
         vacio = [0 ,4, 5, 6, 12, 13, 20, 27, 34, 56, 63, 70, 71, 77, 78, 84, 85, 91, 92, 98, 99, 105, 106, 112, 113, 119, 120, 126, 127, 132, 133, 134, 139]
     else:
@@ -22,38 +24,52 @@ def det (num_serie,presion_old,temperatura_old,humedad_old,presion_new,temperatu
 
     presion = np.reshape(presion,(20,7))
 
+    #convertir vector de presion pasada a matriz de 7x20
+    if int(num_serie[2]) % 2 != 0:
+            vacio = [0 ,4, 5, 6, 12, 13, 20, 27, 34, 56, 63, 70, 71, 77, 78, 84, 85, 91, 92, 98, 99, 105, 106, 112, 113, 119, 120, 126, 127, 132, 133, 134, 139]
+    else:
+            vacio = [0, 1, 2, 6, 7, 8, 14, 21, 28, 62, 69, 75, 76, 82, 83, 89, 90, 96, 97, 103, 104, 110, 111, 117, 118, 124, 125, 126, 131, 132, 133, 138, 139]
+        
+    k = 0
+    presionold = np.zeros((140,1))
+    for i in range (140):
+        if i in vacio:
+            presionold[i] = 0
+        else:
+            presionold[i] = presion_old[k]
+            k = k + 1
+
+    presionold = np.reshape(presionold,(20,7))
+
     # Verificar valores dentro de los rangos "sanos"
-    a1 = False
-    a2 = False
-    a3 = False
     suma_pres = 0
     promedio = 0
     for i in range (np.size(presion)):
         #verificar pisada completa
         suma_pres = presion[i%np.size(presion,0), i//np.size(presion,0)] + suma_pres
-        promedio = suma_pres/(np.size(presion))
+    promedio = suma_pres/(np.size(presion))
+    if promedio<umbral_sis:
+        caso = 27
+        anormal = 1
+        return(caso, anormal)
         # verificar presion en rango normal mayor a 0 y menor a 10 kgf
-    if promedio > umbral_sis:
-        for i in range(np.size(presion)):    
-            if (presion[ i%np.size(presion,0), i//np.size(presion,0) ]>10):
-                caso = 28
-                a1 = True
-                break
-            if a1: break
+    for i in range(np.size(presion)):    
+        if (presion[ i%np.size(presion,0), i//np.size(presion,0) ]>10):
+            caso = 28
+            anormal = 1
+            return(caso, anormal)
     # verificar temperatura en rango normal entre 27 y 34.5°C
     for i in range(len(temperatura_new)):
         if (temperatura_new[i]>34.5 or temperatura_new[i]<27):
             caso = 28
-            a2 = True
-            break 
-        if a2: break 
+            anormal = 1
+            return(caso, anormal)
     # verificar humedad en rango optimo entre 40 y 60%
     for i in range(len(humedad_new)):
         if (humedad_new[i]> 60 or  humedad_new[i]<40):
             caso = 28
-            a3 = True
-            break
-        if a3: break
+            anormal = 1
+            return(caso, anormal)
 
     #Analisis de sistema de presion
     caso = 0
@@ -67,7 +83,7 @@ def det (num_serie,presion_old,temperatura_old,humedad_old,presion_new,temperatu
             vecindad = 0
             cont_pres = 0
             #comparar valor contra momento anterior
-            if abs(presion[psf,psc]-presion_old[psf, psc])>umbral_pres:
+            if abs(presion[psf,psc]-presionold[psf, psc])>umbral_pres:
                 # Se obtiene el promedio de la vecindad para registrar el cambio promedio
                 for j in range(9):
                     if psf == 0:
@@ -144,10 +160,11 @@ def det (num_serie,presion_old,temperatura_old,humedad_old,presion_new,temperatu
                             if (presion[psf-1+j//3,psc-1+j%3]>cambio):
                                 cont_pres = 1 + cont_pres
             #si existen muchos puntos de sensado con cambio entonces se ignora                   
-            if (cont_pres>0 and cont_pres<15):
+            if (cont_pres>0 and cont_pres<6):
                 indicadorpres = 1
                 sens_pres.append(i)
-                signopres.append(presion[psf,psc]-presion_old[psf,psc])
+                signopres.append(presion[psf,psc]-presionold[psf,psc])
+
                 
         #Analisis del sistema de temperatura
         cont_temp = 0
@@ -240,16 +257,18 @@ def det (num_serie,presion_old,temperatura_old,humedad_old,presion_new,temperatu
             for i in range(len(signopres)):
                 psigpr = psigpr + signopres[i]
                 psigpr = psigpr/len(signopres)
-        elif np.size(signopres) == 0:
-            psigpr = signopres
+        elif np.size(signopres) == 1:
+            psigpr = signopres[0]
+        else:
+            psigpr = 0
 
         psigtm = 0
         if len(signotemp)>1:
             for i in range(len(signotemp)):
                 psigtm = psigtm + signotemp[i]
                 psigtm = psigtm/len(signotemp)
-        elif np.size(signopres) == 0:
-            psigpr = signopres
+        elif np.size(signotemp) == 1:
+            psigtm = signotemp[0]
         
         # Condicionales de riesgo combinaciones
         if indicadorpres == 1 :
@@ -337,5 +356,4 @@ def det (num_serie,presion_old,temperatura_old,humedad_old,presion_new,temperatu
                         caso = 26
                 else: 
                     caso = 27
-        
-    return(caso)
+    return(caso, anormal)
