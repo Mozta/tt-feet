@@ -67,8 +67,8 @@ def crear():
 
         if int(num_serie[2]) % 2 != 0:
             temp_old = temp_old['tder']
-            press_old = press_old['hder']
-            hum_old = hum_old['pder']
+            press_old = press_old['pder']
+            hum_old = hum_old['hder']
         else:
             temp_old = temp_old['tizq']
             press_old = press_old['piz']
