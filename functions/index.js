@@ -24,15 +24,57 @@ exports.sendNotificationToFCMToken = functions.firestore.document('messages/{mUi
 
     function setmsg(codemsg){
         switch (codemsg){
-            case 0:
-                alertmsg = "alerta 0";
-                break;
             case 1:
-                alertmsg = "alerta 1";
+                alertmsg = "Se detectó aumento en las variables. Tome precauciones.";
                 break;
             case 2:
-                alertmsg = "alerta 2";
+                alertmsg = "Se detectó una medición anómala. Se recomienda tomar un descanso del calzado.";
                 break;
+            case 3:
+                alertmsg = "Se detectó aumento en las variables. Tome precauciones.";
+                break;
+            case 4:
+                alertmsg = "Se detectó una medición anómala. Se recomienda tomar un descanso del calzado.";
+                break;
+            case 5:
+                alertmsg = "Se detectó un posible objeto dentro del calzado.";
+                break;
+            case 6:
+                alertmsg = "Se detectó un posible objeto dentro del calzado.";
+                break;
+            case 8:
+                alertmsg = "Se detectó un posible objeto dentro del calzado.";
+                break;
+            case 9:
+                alertmsg = "Se detectó un posible objeto dentro del calzado.";
+                break;
+            case 11:
+                alertmsg = "Se detectó una medición anómala. Se recomienda tomar un descanso del calzado.";
+                break;
+            case 13:
+                alertmsg = "Se detectó una medición anómala. Se recomienda tomar un descanso del calzado.";
+                break;
+            case 20:
+                alertmsg = "Se detectó una medición anómala. Se recomienda tomar un descanso del calzado.";
+                break;
+            case 21:
+                alertmsg = "Se detectó aumento en la temperatura. Tome precauciones.";
+                break;
+            case 22:
+                alertmsg = "Se detectó una medición anómala. Se recomienda tomar un descanso del calzado.";
+                break;
+            case 24:
+                alertmsg = "Se detectó disminución en la temperatura. Tome precauciones.";
+                break;
+            case 25:
+                alertmsg = "Se detectó aumento en la humedad. Tome precauciones.";
+                break;
+            case 26:
+                alertmsg = "Se detectó disminución en la humedad. Tome precauciones.";
+                break;
+            case 28:
+                alertmsg = "Se detectó una medición fuera de rango. Revise el dispositivo.";
+                break;  
             default:
                 alertmsg = "error desconocido"
         }
@@ -41,7 +83,7 @@ exports.sendNotificationToFCMToken = functions.firestore.document('messages/{mUi
 
     var message = {
         notification: {
-            title: "Diafeetis Notification",
+            title: "Diafeetis Notificación",
             body: alertmsg,
         },
         token: fcmToken,

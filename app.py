@@ -2,7 +2,7 @@
 # Required Imports
 import os
 from random import randint
-import numpy as np
+from deteccion import det
 from flask import Flask, request, jsonify
 from firebase_admin import credentials, firestore, initialize_app
 # Initialize Flask App
@@ -49,7 +49,6 @@ def crear():
         num_serie = request.json['ns']
         userid = tt_ref.document("micros/ns/"+num_serie).collections()
         uid = list(userid)[0].id
-        #print(uid)
 
         #### ----------- Obten variables nuevas del pie ----------- #####
         temp_new = request.json['temp']
@@ -68,7 +67,6 @@ def crear():
         temp_old = temp_old['tder']
         press_old = press_old['hder']
         hum_old = hum_old['pder']
-        #press_old = np.reshape(press_old, (20,7))
 
         #### ----------- Obten variables pasadas contralaterales ----------- #####
         if int(num_serie[2]) % 2 != 0:
@@ -77,58 +75,37 @@ def crear():
             ns_cont = "mc" + str(int(num_serie[2])-1)
 
         temp_con = tt_ref.document("micros/ns/"+ns_cont+"/"+uid+"/temp").get()
-        press_con = tt_ref.document("micros/ns/"+ns_cont+"/"+uid+"/press").get()
         hum_con = tt_ref.document("micros/ns/"+ns_cont+"/"+uid+"/hum").get()
 
         temp_con = temp_con.to_dict()
-        press_con = press_con.to_dict()
         hum_con = hum_con.to_dict()
 
         temp_con = temp_con['tder']
-        press_con = press_con['hder']
         hum_con = hum_con['pder']
-        #press_con = np.reshape(press_der, (20,7))
 
         #### ----------- Entrada a función de detección ----------- #####
-        #det(temp_new,press_new,hum_new,temp_old,press_old,hum_old,temp_con,press_con,hum_con)
-
+        [code_msj,nivel_riesgo] = det(num_serie,temp_new,press_new,hum_new,temp_old,press_old,hum_old,temp_con,hum_con)
+        if code_msj != 27:
+            detect_alert(code_msj,uid)
        
         #### ----------- Promedio general de variables ----------- #####
-        if int(num_serie[2]) % 2 != 0:
-            print("holi, soy impar")
-            gral = request.json['gral']
-            prom_gral(num_serie,gral,uid)
+        if nivel_riesgo == 0:
+            if int(num_serie[2]) % 2 != 0:
+                gral = request.json['gral']
+                prom_gral(num_serie,gral,uid)
 
         #### ----------- Establecer data en el usuario ----------- #####
-        if int(num_serie[2]) % 2 != 0:
-            #IMPAR
-            tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/hum").update({'hder':request.json['hder']})
-            tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/temp").update({'tder':request.json['tder']})
-            tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/press").update({'pder':request.json['pder']})
-        else:
-            #PAR
-            tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/hum").update({'hder':request.json['hder']})
-            tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/temp").update({'tder':request.json['tder']})
-            tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/press").update({'piz':request.json['piz']})
-
-
-        
-            
-
-
-       
-
-
-        #print(request.json)
-        #todo_ref.document('1').collection('testing').document('press').set('press':)
-
-        # def detect_alert(arg, uid):
-        #     muid = str(randint(1, 1000))
-        #     msj_ref.document("msj"+muid).set({'cmsj': arg, 'userUid': uid})
-
-        # if code_msj != 0:
-        #     detect_alert(code_msj,uid)
-        
+        if nivel_riesgo == 0:
+            if int(num_serie[2]) % 2 != 0:
+                #IMPAR
+                tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/hum").update({'hder':request.json['hum']})
+                tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/temp").update({'tder':request.json['temp']})
+                tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/press").update({'pder':request.json['press']})
+            else:
+                #PAR
+                tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/hum").update({'hizq':request.json['hum']})
+                tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/temp").update({'tizq':request.json['temp']})
+                tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/press").update({'piz':request.json['press']})
 
         return jsonify({"success": True}), 200
     except Exception as e:
@@ -170,27 +147,22 @@ def lee():
         temp_der = temp_der['tder']
         hum_der = hum_der['hder']
         press_der = press_der['pder']
-        #press_der = np.reshape(press_der, (20,7))
 
 
         #### ----------- Obten variables pasadas contralaterales ----------- #####
         temp_der_con = tt_ref.document('micros/ns/mc2/IhvATIUo5tRBhadQgH84ngOWaT82/temp').get()
-        press_der_con = tt_ref.document('micros/ns/mc2/IhvATIUo5tRBhadQgH84ngOWaT82/press').get()
         hum_der_con = tt_ref.document('micros/ns/mc2/IhvATIUo5tRBhadQgH84ngOWaT82/hum').get()
 
         temp_der_con = temp_der_con.to_dict()
-        press_der_con = press_der_con.to_dict()
         hum_der_con = hum_der_con.to_dict()
 
         temp_der_con = temp_der_con['tder']
         hum_der_con = hum_der_con['hder']
-        press_der_con = press_der_con['pder']
-        #press_der_con = np.reshape(press_der, (20,7))
 
         
 
 
-        print(temp_der['tder'])
+        #print(temp_der['tder'])
         return jsonify(temp_der), 200
     except Exception as e:
         return f"An Error Occured: {e}"
@@ -237,11 +209,16 @@ def prom_gral(num_serie,gral,uid):
 
     info_gral[0] = round((gral[0] + gral2[0]) / 2)
     info_gral[1] = round((gral[1] + gral2[1]) / 2)
-    info_gral[2] = (gral[2] + gral2[2]) / 2
+    info_gral[2] = round(((gral[2] + gral2[2]) / 2),1)
 
     tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/gral").update({'batt':info_gral[0], 'humg':info_gral[1], 'tempg':info_gral[2]})
 
-    print(info_gral)
+    #print(info_gral)
+
+#### ----------- Función notificación de alerta ----------- #####
+def detect_alert(arg, uid):
+    muid = str(randint(1, 1000))
+    msj_ref.document("msj"+muid).set({'cmsj': arg, 'userUid': uid})
         
 
 
