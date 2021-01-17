@@ -15,7 +15,7 @@ def det (num_serie,presion_old,temperatura_old,humedad_old,presion_new,temperatu
     
     k = 0
     presion = np.zeros((140,1))
-    for i in range (140):
+    for i in range (len(presion)):
         if i in vacio:
             presion[i] = 0
         else:
