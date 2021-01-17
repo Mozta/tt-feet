@@ -65,9 +65,14 @@ def crear():
         press_old = press_old.to_dict()
         hum_old = hum_old.to_dict()
 
-        temp_old = temp_old['tder']
-        press_old = press_old['hder']
-        hum_old = hum_old['pder']
+        if int(num_serie[2]) % 2 != 0:
+            temp_old = temp_old['tder']
+            press_old = press_old['hder']
+            hum_old = hum_old['pder']
+        else:
+            temp_old = temp_old['tizq']
+            press_old = press_old['piz']
+            hum_old = hum_old['hizq']
 
         #### ----------- Obten variables pasadas contralaterales ----------- #####
         if int(num_serie[2]) % 2 != 0:
@@ -81,11 +86,16 @@ def crear():
         temp_con = temp_con.to_dict()
         hum_con = hum_con.to_dict()
 
-        temp_con = temp_con['tder']
-        hum_con = hum_con['pder']
+        if int(num_serie[2]) % 2 != 0:
+            temp_con = temp_con['tizq']
+            hum_con = hum_con['hizq']
+        else:
+            temp_con = temp_con['tder']
+            hum_con = hum_con['hder']
+            
 
         #### ----------- Entrada a función de detección ----------- #####
-        [code_msj,nivel_riesgo] = det(num_serie,temp_new,press_new,hum_new,temp_old,press_old,hum_old,temp_con,hum_con)
+        [code_msj,nivel_riesgo] = det(num_serie,press_old,temp_old,hum_old,press_new,temp_new,hum_new,temp_con,hum_con)
         if code_msj != 27:
             detect_alert(code_msj,uid)
        
