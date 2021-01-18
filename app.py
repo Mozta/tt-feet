@@ -3,6 +3,8 @@
 import os
 from random import randint
 from deteccion import det
+from deteccionfuzzy import dfuzzy
+from apiexcel import send_fuzzy
 from flask import Flask, request, jsonify
 from firebase_admin import credentials, firestore, initialize_app
 # Initialize Flask App
@@ -23,20 +25,84 @@ def create():
         e.g. json={'id': '1', 'title': 'Write a blog post'}
     """
     try:
-        id = request.json['id']
-        todo_ref.document(id).set(request.json)
-
         #### ----------- Obten num_serie y usurio vinculado ----------- #####
         num_serie = request.json['ns']
         userid = tt_ref.document("micros/ns/"+num_serie).collections()
         uid = list(userid)[0].id
-        #print(uid)
+
+        #### ----------- Obten variables nuevas del pie ----------- #####
         temp_new = request.json['temp']
         hum_new = request.json['hum']
+        press_new = request.json['press']
 
+        #### ----------- Obten variables pasadas del mismo pie ----------- #####
+        temp_old = tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/temp").get()
+        press_old = tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/press").get()
+        hum_old = tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/hum").get()
 
-        tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/hum").update({'hder':hum_new})
-        tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/temp").update({'tder':request.json['temp']})
+        temp_old = temp_old.to_dict()
+        press_old = press_old.to_dict()
+        hum_old = hum_old.to_dict()
+
+        if int(num_serie[2]) % 2 != 0:
+            temp_old = temp_old['tder']
+            press_old = press_old['pder']
+            hum_old = hum_old['hder']
+        else:
+            temp_old = temp_old['tizq']
+            press_old = press_old['piz']
+            hum_old = hum_old['hizq']
+
+        #### ----------- Obten variables pasadas contralaterales ----------- #####
+        if int(num_serie[2]) % 2 != 0:
+            ns_cont = "mc" + str(int(num_serie[2])+1)
+        else:
+            ns_cont = "mc" + str(int(num_serie[2])-1)
+
+        temp_con = tt_ref.document("micros/ns/"+ns_cont+"/"+uid+"/temp").get()
+        hum_con = tt_ref.document("micros/ns/"+ns_cont+"/"+uid+"/hum").get()
+
+        temp_con = temp_con.to_dict()
+        hum_con = hum_con.to_dict()
+
+        if int(num_serie[2]) % 2 != 0:
+            temp_con = temp_con['tizq']
+            hum_con = hum_con['hizq']
+        else:
+            temp_con = temp_con['tder']
+            hum_con = hum_con['hder']
+            
+
+        #### ----------- Entrada a función de detección ----------- #####
+        [code_msj,nivel_riesgo,var1,var2,var3] = dfuzzy(num_serie,press_old,temp_old,hum_old,press_new,temp_new,hum_new,temp_con,hum_con)
+        send_fuzzy(code_msj,nivel_riesgo,var1,var2,var3)
+        #print(code_msj,nivel_riesgo)
+        if code_msj != 27:
+            detect_alert(code_msj,uid)
+       
+        #### ----------- Promedio general de variables ----------- #####
+        if nivel_riesgo == 0:
+            if int(num_serie[2]) % 2 != 0:
+                vec_temp = request.json['temp']
+                if vec_temp[0] != 0:
+                    gral = request.json['gral']
+                    prom_gral(num_serie,gral,uid)
+
+        #### ----------- Establecer data en el usuario ----------- #####
+        if nivel_riesgo == 0:
+            if int(num_serie[2]) % 2 != 0:
+                #IMPAR
+                if vec_temp[0] != 0:
+                    tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/hum").update({'hder':request.json['hum']})
+                    tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/temp").update({'tder':request.json['temp']})
+                    tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/press").update({'pder':request.json['press']})
+            else:
+                #PAR
+                gral = request.json['gral']
+                tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/gral").update({'batt':gral[2], 'humg':gral[1], 'tempg':gral[0]})
+                tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/hum").update({'hizq':request.json['hum']})
+                tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/temp").update({'tizq':request.json['temp']})
+                tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/press").update({'piz':request.json['press']})
 
         return jsonify({"success": True}), 200
     except Exception as e:
@@ -92,26 +158,40 @@ def crear():
             temp_con = temp_con['tder']
             hum_con = hum_con['hder']
             
-
         #### ----------- Entrada a función de detección ----------- #####
-        [code_msj,nivel_riesgo] = det(num_serie,press_old,temp_old,hum_old,press_new,temp_new,hum_new,temp_con,hum_con)
-        print(code_msj,nivel_riesgo)
-        if code_msj != 27:
-            detect_alert(code_msj,uid)
+        nivel_riesgo = 30
+        code_msj = 30
+        if int(num_serie[2]) % 2 != 0:
+                vec_temp = request.json['temp']
+                if vec_temp[0] != 0:
+                    [code_msj,nivel_riesgo] = det(num_serie,press_old,temp_old,hum_old,press_new,temp_new,hum_new,temp_con,hum_con)
+                    print(code_msj,nivel_riesgo)
+                    if code_msj != 27:
+                        detect_alert(code_msj,uid)
+        else:
+            [code_msj,nivel_riesgo] = det(num_serie,press_old,temp_old,hum_old,press_new,temp_new,hum_new,temp_con,hum_con)
+            print(code_msj,nivel_riesgo)
+            if code_msj != 27:
+                detect_alert(code_msj,uid)
+
        
         #### ----------- Promedio general de variables ----------- #####
         if nivel_riesgo == 0:
             if int(num_serie[2]) % 2 != 0:
-                gral = request.json['gral']
-                prom_gral(num_serie,gral,uid)
+                if vec_temp[0] != 0:
+                    gral = request.json['gral']
+                    prom_gral(num_serie,gral,uid)
+                else:
+                    print("fui 0")
 
         #### ----------- Establecer data en el usuario ----------- #####
         if nivel_riesgo == 0:
             if int(num_serie[2]) % 2 != 0:
                 #IMPAR
-                tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/hum").update({'hder':request.json['hum']})
-                tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/temp").update({'tder':request.json['temp']})
-                tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/press").update({'pder':request.json['press']})
+                if vec_temp[0] != 0:
+                    tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/hum").update({'hder':request.json['hum']})
+                    tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/temp").update({'tder':request.json['temp']})
+                    tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/press").update({'pder':request.json['press']})
             else:
                 #PAR
                 gral = request.json['gral']
