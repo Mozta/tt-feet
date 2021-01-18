@@ -371,4 +371,4 @@ def dfuzzy (num_serie,presion_old,temperatura_old,humedad_old,presion_new,temper
                 else: 
                     caso = 27
 
-    return(caso, anormal, signohum, signotemp, signopres)
+    return(caso, anormal, signohum, signotemp, signopres, umbral_pres)

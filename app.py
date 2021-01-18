@@ -79,7 +79,7 @@ def create():
         if int(num_serie[2]) % 2 != 0:
                 vec_temp = request.json['temp']
                 if vec_temp[0] != 0:
-                    [code_msj,nivel_riesgo,var1,var2,var3] = dfuzzy(num_serie,press_old,temp_old,hum_old,press_new,temp_new,hum_new,temp_con,hum_con)
+                    [code_msj,nivel_riesgo,var1,var2,var3,var4] = dfuzzy(num_serie,press_old,temp_old,hum_old,press_new,temp_new,hum_new,temp_con,hum_con)
                     send_fuzzy(code_msj,nivel_riesgo,var1,var2,var3)
                     #print(code_msj,nivel_riesgo)
                     if code_msj != 27:
@@ -320,7 +320,8 @@ def prom_gral(num_serie,gral,uid):
 
 #### ----------- Función notificación de alerta ----------- #####
 def detect_alert(arg, uid):
-    muid = str(randint(1, 1000))
+    #muid = str(randint(1, 1000))
+    muid = "1111"
     msj_ref.document("msj"+muid).set({'cmsj': arg, 'userUid': uid})
         
 
