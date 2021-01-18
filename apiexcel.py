@@ -9,5 +9,5 @@ def send_fuzzy(v1,v2,v3,v4,v5,v6):
     'http://maker.ifttt.com/trigger/detfuzzy/with/key/' + api_key,
     json=sensor_read,
     headers=request_headers)
-    print(request.text)
+    #print(request.text)
     request.close()

@@ -79,7 +79,8 @@ def create():
                 vec_temp = request.json['temp']
                 if vec_temp[0] != 0:
                     [code_msj,nivel_riesgo,var1,var2,var3,var4] = dfuzzy(num_serie,press_old,temp_old,hum_old,press_new,temp_new,hum_new,temp_con,hum_con)
-                    send_fuzzy(code_msj,nivel_riesgo,var1,var2,var3)
+                    print(code_msj,nivel_riesgo,var1,var2,var3,var4)
+                    send_fuzzy(code_msj,nivel_riesgo,var1,var2,var3,var4)
                     #print(code_msj,nivel_riesgo)
                     if code_msj != 27:
                         detect_alert(code_msj,uid)
@@ -307,10 +308,10 @@ def prom_gral(num_serie,gral,uid):
     gral2[1] = ctrltral['humg']
     gral2[2] = ctrltral['tempg']
 
-    info_gral[0] = round((gral[0] + gral2[0]) / 2)
+    info_gral[0] = round((gral[2] + gral2[0]) / 2)
     info_gral[1] = round((gral[1] + gral2[1]) / 2)
-    info_gral[2] = round(((gral[2] + gral2[2]) / 2),1)
-
+    info_gral[2] = round(((gral[0] + gral2[2]) / 2),1)
+    print(gral[2],gral2[2])
     tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/gral").update({'batt':info_gral[0], 'humg':info_gral[1], 'tempg':info_gral[2]})
 
     #print(info_gral)
