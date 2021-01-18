@@ -95,7 +95,7 @@ def crear():
 
         #### ----------- Entrada a función de detección ----------- #####
         [code_msj,nivel_riesgo] = det(num_serie,press_old,temp_old,hum_old,press_new,temp_new,hum_new,temp_con,hum_con)
-        #print(code_msj,nivel_riesgo)
+        print(code_msj,nivel_riesgo)
         if code_msj != 27:
             detect_alert(code_msj,uid)
        
@@ -118,7 +118,7 @@ def crear():
                 tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/temp").update({'tizq':request.json['temp']})
                 tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/press").update({'piz':request.json['press']})
 
-        return jsonify({"success": True}), 200
+        return jsonify({"success": True, "cmsj":[code_msj,nivel_riesgo]}), 200
     except Exception as e:
         return f"An Error Occured: {e}"
 

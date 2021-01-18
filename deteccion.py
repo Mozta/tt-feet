@@ -44,12 +44,12 @@ def det (num_serie,presion_old,temperatura_old,humedad_old,presion_new,temperatu
     # Verificar valores dentro de los rangos "sanos"
     suma_pres = 0
     promedio = 0
-    for i in range (np.size(presion)):
+    for i in range (np.size(presion_new)):
         #verificar pisada completa
-        suma_pres = presion[i%np.size(presion,0), i//np.size(presion,0)] + suma_pres
-    promedio = suma_pres/(np.size(presion))
+        suma_pres = presion_new[i] + suma_pres
+    promedio = suma_pres/(np.size(presion_new))
     if promedio<umbral_sis:
-        print(promedio)
+        #print(promedio)
         caso = 27
         anormal = 1
         return(caso, anormal)
