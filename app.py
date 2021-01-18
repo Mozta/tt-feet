@@ -114,6 +114,8 @@ def crear():
                 tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/press").update({'pder':request.json['press']})
             else:
                 #PAR
+                gral = request.json['gral']
+                tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/gral").update({'batt':gral[2], 'humg':gral[1], 'tempg':gral[0]})
                 tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/hum").update({'hizq':request.json['hum']})
                 tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/temp").update({'tizq':request.json['temp']})
                 tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/press").update({'piz':request.json['press']})
