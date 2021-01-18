@@ -1,5 +1,5 @@
 import numpy as np
-def det (num_serie,presion_old,temperatura_old,humedad_old,presion_new,temperatura_new,humedad_new,temperatura_cont,humedad_cont):
+def dfuzzy (num_serie,presion_old,temperatura_old,humedad_old,presion_new,temperatura_new,humedad_new,temperatura_cont,humedad_cont):
     
     umbral_pres = 0.6
     umbral_temp = 2.2
@@ -48,30 +48,42 @@ def det (num_serie,presion_old,temperatura_old,humedad_old,presion_new,temperatu
         #verificar pisada completa
         suma_pres = presion_new[i] + suma_pres
     promedio = suma_pres/(np.size(presion_new))
-    umbral_pres = umbral_pres / promedio
+    umbral_pres = umbral_pres/ promedio
     if promedio<umbral_sis:
         #print(promedio)
         caso = 27
         anormal = 1
-        return(caso, anormal)
+        signopres = 0
+        signohum = 0
+        signotemp = 0
+        return(caso, anormal, signohum, signotemp, signopres)
         # verificar presion en rango normal mayor a 0 y menor a 10 kgf
     for i in range(np.size(presion)):    
         if (presion[ i%np.size(presion,0), i//np.size(presion,0) ]>10):
             caso = 28
             anormal = 1
-            return(caso, anormal)
+            signopres = 0
+            signohum = 0
+            signotemp = 0
+            return(caso, anormal, signohum, signotemp, signopres)
     # verificar temperatura en rango normal entre 27 y 34.5°C
     for i in range(len(temperatura_new)):
         if (temperatura_new[i]>34.5 or temperatura_new[i]<18):
             caso = 28
-            anormal = 1
-            return(caso, anormal)
+            anormal = 1     
+            signopres = 0
+            signohum = 0
+            signotemp = 0
+            return(caso, anormal, signohum, signotemp, signopres)
     # verificar humedad en rango optimo entre 40 y 60%
     for i in range(len(humedad_new)):
         if (humedad_new[i]> 60 or  humedad_new[i]<40):
             caso = 28
-            anormal = 1
-            return(caso, anormal)
+            anormal = 1    
+            signopres = 0
+            signohum = 0
+            signotemp = 0
+            return(caso, anormal, signohum, signotemp, signopres)
 
     #Analisis de sistema de presion
     caso = 0
@@ -358,4 +370,5 @@ def det (num_serie,presion_old,temperatura_old,humedad_old,presion_new,temperatu
                         caso = 26
                 else: 
                     caso = 27
-    return(caso, anormal)
+
+    return(caso, anormal, signohum, signotemp, signopres)
