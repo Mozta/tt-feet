@@ -75,7 +75,7 @@ def det (num_serie,presion_old,temperatura_old,humedad_old,presion_new,temperatu
 
     #Analisis de sistema de presion
     caso = 0
-    if promedio > umbral_sis:
+    if promedio >= umbral_sis:
         indicadorpres = 0
         signopres = []
         sens_pres = []
@@ -85,7 +85,7 @@ def det (num_serie,presion_old,temperatura_old,humedad_old,presion_new,temperatu
             vecindad = 0
             cont_pres = 0
             #comparar valor contra momento anterior
-            if abs(presion[psf,psc]-presionold[psf, psc])>umbral_pres:
+            if abs(presion[psf,psc]-presionold[psf, psc])>=umbral_pres:
                 # Se obtiene el promedio de la vecindad para registrar el cambio promedio
                 for j in range(9):
                     if psf == 0:
@@ -175,40 +175,38 @@ def det (num_serie,presion_old,temperatura_old,humedad_old,presion_new,temperatu
         signotemp = []
         for i in range(len(temperatura_new)):
             #por cada sensor de temperatura se compara con el momento anterior
-            if abs(temperatura_new[i]-temperatura_old[i])>umbral_temp:
+            if abs(temperatura_new[i]-temperatura_old[i])>=umbral_temp:
                 #al registrar un cambio de 2.2, se compara contra los sensores más próximos
                 if i == 0: 
                     ct= abs(temperatura_new[i] - temperatura_new[i+1])
-                    if ct > umbral_temp:
-                        indicadortemp = 1
-                        cont_temp = cont_temp + 1
-                        sens_temp.append(i)
-                        signotemp.append(temperatura_new[i]-temperatura_old[i])
+                    if ct >= umbral_temp:
+                        ctc= abs(temperatura_cont[i] - temperatura_new[i])
+                        if ctc >= umbral_temp:
+                            indicadortemp = 1
+                            cont_temp = cont_temp + 1
+                            sens_temp.append(i)
+                            signotemp.append(temperatura_new[i]-temperatura_old[i])
                 elif i == 6:
                     ct= abs(temperatura_new[i] - temperatura_new[i-1])
-                    if ct > umbral_temp:
-                        indicadortemp = 1
-                        cont_temp = cont_temp + 1
-                        sens_temp.append(i)
-                        signotemp.append(temperatura_new[i]-temperatura_old[i])
+                    if ct >= umbral_temp:
+                        ctc = abs(temperatura_cont[i] - temperatura_new[i])
+                        if ctc >= umbral_temp:
+                            indicadortemp = 1
+                            cont_temp = cont_temp + 1
+                            sens_temp.append(i)
+                            signotemp.append(temperatura_new[i]-temperatura_old[i])
                 else:
                     ct1 = abs(temperatura_new[i] - temperatura_new[i+1])
                     ct2 = abs(temperatura_new[i] - temperatura_new[i-1])
                     ct = ct1 + ct2 / 2 
-                    if ct > umbral_temp:
-                        indicadortemp = 1
-                        cont_temp = cont_temp + 1
-                        sens_temp.append(i)
-                        signotemp.append(temperatura_new[i]-temperatura_old[i])
-                
+                    if ct >= umbral_temp:
                 #comparar sensor contra sensor contralateral
-                if indicadortemp == 0:
-                    ct= abs(temperatura_cont[i] - temperatura_new[i])
-                    if ct > umbral_temp:
-                        indicadortemp = 1
-                        cont_temp = cont_temp + 1
-                        sens_temp.append(i)
-                        signotemp.append(temperatura_new[i]-temperatura_old[i])
+                        ctc= abs(temperatura_cont[i] - temperatura_new[i])
+                        if ctc >= umbral_temp:
+                            indicadortemp = 1
+                            cont_temp = cont_temp + 1
+                            sens_temp.append(i)
+                            signotemp.append(temperatura_new[i]-temperatura_old[i])
         #si muchos sensores registran cambio entonces se ignoran los cambios              
         if cont_temp>2:
             sens_temp = []
@@ -222,36 +220,20 @@ def det (num_serie,presion_old,temperatura_old,humedad_old,presion_new,temperatu
         signohum = []
         # se comparan los sensores de humedad contra un momento previo
         for i in range(len(humedad_new)):
-            if abs(humedad_new[i]-humedad_old[i])>umbral_hum:
+            if abs(humedad_new[i]-humedad_old[i])>=umbral_hum:
                 # si existe cambio de 5 entonces se compara contra el otro sensor
                 if i == 0: 
                     ch = abs(humedad_new[i] - humedad_new[i+1])
-                    if ch > umbral_hum:
-                        indicadorhum = 1
-                        cont_hum = cont_hum + 1
-                        sens_hum.append(i)
-                        signohum.append(humedad_new[i]-humedad_old[i])
-                else:
-                    ch = abs(humedad_new[i] - humedad_new[i-1])
-                    if ch > umbral_hum:
-                        indicadorhum = 1
-                        cont_hum = cont_hum + 1
-                        sens_hum.append(i)
-                        signohum.append(humedad_new[i]-humedad_old[i])
+                    if ch >= umbral_hum:
                 #si el valor es constante en el pie se compara contra pie contralateral       
-                if indicadorhum == 0:
-                    sch = abs(humedad_cont[i]-humedad_new[i])
-                    if sch > umbral_hum:
-                        indicadorhum = 1
-                        cont_hum = cont_hum + 1
-                        sens_hum.append(i)
-                        signohum.append(humedad_new[i]-humedad_old[i])
-                #si existe más de un punto con nuevo valor entonces se ignora el cambio      
-        if cont_hum>0:
-            indicadorhum = 0
-            sens_hum = []
-            signohum = []
-        
+                        sch = abs(humedad_cont[i]-humedad_new[i])
+                        if sch >= umbral_hum:
+                            indicadorhum = 1
+                            cont_hum = cont_hum + 1
+                            sens_hum.append(i)
+                            signohum.append(humedad_new[i]-humedad_old[i])
+                            
+                
         # inicio de evaluacion de riesgo usando los indicadores pres,temp y hum, así como sus signos
         #obtenemos un promedio de los cambios registrados para indicar si fue cambio incremental o decremental
         psigpr = 0
@@ -271,6 +253,9 @@ def det (num_serie,presion_old,temperatura_old,humedad_old,presion_new,temperatu
                 psigtm = psigtm/len(signotemp)
         elif np.size(signotemp) == 1:
             psigtm = signotemp[0]
+
+        if len(signohum) != 0:
+             signohum = signohum[0]
         
         # Condicionales de riesgo combinaciones
         if indicadorpres == 1 :

@@ -181,7 +181,7 @@ def crear():
         else:
             [code_msj,nivel_riesgo] = det(num_serie,press_old,temp_old,hum_old,press_new,temp_new,hum_new,temp_con,hum_con)
             print(code_msj,nivel_riesgo)
-            if code_msj != 27:
+            if code_msj != 27 or code_msj != 28:
                 detect_alert(code_msj,uid)
 
        
@@ -191,8 +191,6 @@ def crear():
                 if vec_temp[0] != 0:
                     gral = request.json['gral']
                     prom_gral(num_serie,gral,uid)
-                else:
-                    print("fui 0")
 
         #### ----------- Establecer data en el usuario ----------- #####
         if nivel_riesgo == 0:
