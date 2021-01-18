@@ -1,10 +1,10 @@
 import numpy as np
 def det (num_serie,presion_old,temperatura_old,humedad_old,presion_new,temperatura_new,humedad_new,temperatura_cont,humedad_cont):
     
-    umbral_pres = 3
+    umbral_pres = 0.5
     umbral_temp = 2.2
     umbral_hum = 5
-    umbral_sis = 2
+    umbral_sis = 0.7
     anormal = 0
 
     #convertir vector de presion actual a matriz de 7x20
@@ -49,6 +49,7 @@ def det (num_serie,presion_old,temperatura_old,humedad_old,presion_new,temperatu
         suma_pres = presion[i%np.size(presion,0), i//np.size(presion,0)] + suma_pres
     promedio = suma_pres/(np.size(presion))
     if promedio<umbral_sis:
+        print(promedio)
         caso = 27
         anormal = 1
         return(caso, anormal)
@@ -60,7 +61,7 @@ def det (num_serie,presion_old,temperatura_old,humedad_old,presion_new,temperatu
             return(caso, anormal)
     # verificar temperatura en rango normal entre 27 y 34.5°C
     for i in range(len(temperatura_new)):
-        if (temperatura_new[i]>34.5 or temperatura_new[i]<27):
+        if (temperatura_new[i]>34.5 or temperatura_new[i]<18):
             caso = 28
             anormal = 1
             return(caso, anormal)

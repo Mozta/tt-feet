@@ -96,6 +96,7 @@ def crear():
 
         #### ----------- Entrada a función de detección ----------- #####
         [code_msj,nivel_riesgo] = det(num_serie,press_old,temp_old,hum_old,press_new,temp_new,hum_new,temp_con,hum_con)
+        #print(code_msj,nivel_riesgo)
         if code_msj != 27:
             detect_alert(code_msj,uid)
        
