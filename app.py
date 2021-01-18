@@ -71,19 +71,28 @@ def create():
         else:
             temp_con = temp_con['tder']
             hum_con = hum_con['hder']
-            
-
-        #### ----------- Entrada a función de detección ----------- #####
-        [code_msj,nivel_riesgo,var1,var2,var3] = dfuzzy(num_serie,press_old,temp_old,hum_old,press_new,temp_new,hum_new,temp_con,hum_con)
-        send_fuzzy(code_msj,nivel_riesgo,var1,var2,var3)
-        #print(code_msj,nivel_riesgo)
-        if code_msj != 27:
-            detect_alert(code_msj,uid)
+     
+        #### ----------- Entrada a función de detección fuzzy ----------- #####
+        nivel_riesgo = 30
+        code_msj = 30
+        if int(num_serie[2]) % 2 != 0:
+                vec_temp = request.json['temp']
+                if vec_temp[0] != 0:
+                    [code_msj,nivel_riesgo,var1,var2,var3] = dfuzzy(num_serie,press_old,temp_old,hum_old,press_new,temp_new,hum_new,temp_con,hum_con)
+                    send_fuzzy(code_msj,nivel_riesgo,var1,var2,var3)
+                    #print(code_msj,nivel_riesgo)
+                    if code_msj != 27:
+                        detect_alert(code_msj,uid)
+        else:
+            [code_msj,nivel_riesgo,var1,var2,var3] = dfuzzy(num_serie,press_old,temp_old,hum_old,press_new,temp_new,hum_new,temp_con,hum_con)
+            send_fuzzy(code_msj,nivel_riesgo,var1,var2,var3)
+            #print(code_msj,nivel_riesgo)
+            if code_msj != 27:
+                detect_alert(code_msj,uid)
        
         #### ----------- Promedio general de variables ----------- #####
         if nivel_riesgo == 0:
             if int(num_serie[2]) % 2 != 0:
-                vec_temp = request.json['temp']
                 if vec_temp[0] != 0:
                     gral = request.json['gral']
                     prom_gral(num_serie,gral,uid)
