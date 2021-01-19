@@ -210,7 +210,7 @@ def crear():
                 tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/temp").update({'tizq':request.json['temp']})
                 tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/press").update({'piz':request.json['press']})
 
-        log_ref.document("testing").set({'cmsj': [code_msj,nivel_riesgo]})
+        log_ref.document("testing").update({'cmsj': [code_msj,nivel_riesgo]})
         return jsonify({"success": True, "cmsj":[code_msj,nivel_riesgo]}), 200
     except Exception as e:
         return f"An Error Occured: {e}"
