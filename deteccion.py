@@ -62,13 +62,13 @@ def det (num_serie,presion_old,temperatura_old,humedad_old,presion_new,temperatu
             return(caso, anormal)
     # verificar temperatura en rango normal entre 27 y 34.5°C
     for i in range(len(temperatura_new)):
-        if (temperatura_new[i]>34.5 or temperatura_new[i]<15):
+        if (temperatura_new[i]>34.5 or temperatura_new[i]<18):
             caso = 28
             anormal = 1
             return(caso, anormal)
     # verificar humedad en rango optimo entre 40 y 60%
     for i in range(len(humedad_new)):
-        if (humedad_new[i]> 90 or  humedad_new[i]<40):
+        if (humedad_new[i]> 75 or  humedad_new[i]<40):
             caso = 28
             anormal = 1
             return(caso, anormal)
