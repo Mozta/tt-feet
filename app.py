@@ -1,6 +1,7 @@
 # app.py
 # Required Imports
 import os
+import logging
 from random import randint
 from deteccion import det
 from deteccionfuzzy import dfuzzy
@@ -210,6 +211,8 @@ def crear():
                 tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/press").update({'piz':request.json['press']})
 
         log_ref.document("testing").update({'cmsj': [code_msj,nivel_riesgo]})
+        print(code_msj, nivel_riesgo)
+        logging.warning("CMSJ:" + str(code_msj)+"/"+ str(nivel_riesgo))
         return jsonify({"success": True, "cmsj":[code_msj,nivel_riesgo]}), 200
     except Exception as e:
         return f"An Error Occured: {e}"
