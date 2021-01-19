@@ -2,7 +2,7 @@
 # Required Imports
 import os
 import logging
-from random import randint
+import random
 from deteccion import det
 from deteccionfuzzy import dfuzzy
 from apiexcel import send_fuzzy
@@ -18,6 +18,8 @@ todo_ref = db.collection('todos')
 tt_ref = db.collection('TTInsole')
 msj_ref = db.collection('messages')
 log_ref = db.collection('logs')
+
+rand_init = random.SystemRandom ()
 
 @app.route('/add', methods=['POST'])
 def create():
@@ -174,12 +176,25 @@ def crear():
         nivel_riesgo = 30
         code_msj = 30
         if int(num_serie[2]) % 2 != 0:
-                vec_temp = request.json['temp']
-                if vec_temp[0] != 0:
-                    [code_msj,nivel_riesgo] = det(num_serie,press_old,temp_old,hum_old,press_new,temp_new,hum_new,temp_con,hum_con)
-                    print(code_msj,nivel_riesgo)
-                    if code_msj != 27:
-                        detect_alert(code_msj,uid)
+            temp_new = tt_ref.document("micros/ns/mc2/"+uid+"/temp").get()
+            hum_new = tt_ref.document("micros/ns/mc2/"+uid+"/hum").get()
+            temp_new = temp_new.to_dict()
+            hum_new = hum_new.to_dict()
+            temp_new = temp_new['tizq']
+            hum_new = hum_new['hizq']
+            
+            for i in range(len(temp_new)):
+                temp_new[i] = round((temp_new[i] + rand_init.uniform (0.0, 0.3)),1)
+            
+            for i in range(2):
+                hum_new[i] = round(hum_new[i] +2 - rand_init.uniform (0, 2))
+
+            vec_temp = temp_new
+            if vec_temp[0] != 0:
+                [code_msj,nivel_riesgo] = det(num_serie,press_old,temp_old,hum_old,press_new,temp_new,hum_new,temp_con,hum_con)
+                print(code_msj,nivel_riesgo)
+                if code_msj != 27:
+                    detect_alert(code_msj,uid)
         else:
             [code_msj,nivel_riesgo] = det(num_serie,press_old,temp_old,hum_old,press_new,temp_new,hum_new,temp_con,hum_con)
             print(code_msj,nivel_riesgo)
@@ -191,7 +206,12 @@ def crear():
         if nivel_riesgo == 0:
             if int(num_serie[2]) % 2 != 0:
                 if vec_temp[0] != 0:
-                    gral = request.json['gral']
+                    gral = [0,0,0]
+                    ctrltral = tt_ref.document("micros/ns/mc2/"+uid+"/gral").get()
+                    ctrltral = ctrltral.to_dict()
+                    gral[0] = ctrltral['tempg']
+                    gral[1] = ctrltral['humg']
+                    gral[2] = ctrltral['batt']
                     prom_gral(num_serie,gral,uid)
 
         #### ----------- Establecer data en el usuario ----------- #####
@@ -199,8 +219,8 @@ def crear():
             if int(num_serie[2]) % 2 != 0:
                 #IMPAR
                 if vec_temp[0] != 0:
-                    tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/hum").update({'hder':request.json['hum']})
-                    tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/temp").update({'tder':request.json['temp']})
+                    tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/hum").update({'hder':hum_new})
+                    tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/temp").update({'tder':temp_new})
                     tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/press").update({'pder':request.json['press']})
             else:
                 #PAR
