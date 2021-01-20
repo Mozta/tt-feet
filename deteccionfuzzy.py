@@ -1,7 +1,7 @@
 import numpy as np
 def dfuzzy (num_serie,presion_old,temperatura_old,humedad_old,presion_new,temperatura_new,humedad_new,temperatura_cont,humedad_cont):
     
-    umbral_pres = 0.6
+    umbral_pres = 0.3
     umbral_temp = 2.2
     umbral_hum = 5
     umbral_sis = 0.35

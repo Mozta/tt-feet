@@ -97,6 +97,7 @@ def create():
             
         #### ----------- Entrada a función de detección fuzzy----------- #####
         [code_msj,nivel_riesgo,var1,var2,var3,var4] = dfuzzy(num_serie,press_old,temp_old,hum_old,press_new,temp_new,hum_new,temp_con,hum_con)
+        print(code_msj,nivel_riesgo,var1,var2,var3,var4)
         send_fuzzy(code_msj,nivel_riesgo,var1,var2,var3,var4)
         if code_msj != 27:
             detect_alert(code_msj,uid)
