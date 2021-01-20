@@ -18,6 +18,8 @@ todo_ref = db.collection('todos')
 tt_ref = db.collection('TTInsole')
 msj_ref = db.collection('messages')
 log_ref = db.collection('logs')
+der2_ref = db.collection('N3qGDjBhGXutx2fQ')
+izq2_ref = db.collection('WLeKk038iX000kGz')
 
 rand_init = random.SystemRandom ()
 
@@ -35,9 +37,26 @@ def create():
         uid = list(userid)[0].id
 
         #### ----------- Obten variables nuevas del pie ----------- #####
-        temp_new = request.json['temp']
-        hum_new = request.json['hum']
         press_new = request.json['press']
+
+        if int(num_serie[2]) % 2 != 0:
+            #impar
+            temp_new = der2_ref.document("testd/der/temp").get()
+            temp_new = temp_new.to_dict()
+            temp_new = temp_new['tder']
+            
+            hum_new = der2_ref.document("testd/der/hum").get()
+            hum_new = hum_new.to_dict()
+            hum_new = hum_new['hder']
+          
+        else:
+            temp_new = izq2_ref.document("testi/izq/temp").get()
+            temp_new = temp_new.to_dict()
+            temp_new = temp_new['tizq']
+            
+            hum_new = izq2_ref.document("testi/izq/hum").get()
+            hum_new = hum_new.to_dict()
+            hum_new = hum_new['hizq']
 
         #### ----------- Obten variables pasadas del mismo pie ----------- #####
         temp_old = tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/temp").get()
@@ -75,48 +94,69 @@ def create():
         else:
             temp_con = temp_con['tder']
             hum_con = hum_con['hder']
-     
-        #### ----------- Entrada a función de detección fuzzy ----------- #####
-        nivel_riesgo = 30
-        code_msj = 30
-        if int(num_serie[2]) % 2 != 0:
-                vec_temp = request.json['temp']
-                if vec_temp[0] != 0:
-                    [code_msj,nivel_riesgo,var1,var2,var3,var4] = dfuzzy(num_serie,press_old,temp_old,hum_old,press_new,temp_new,hum_new,temp_con,hum_con)
-                    print(code_msj,nivel_riesgo,var1,var2,var3,var4)
-                    send_fuzzy(code_msj,nivel_riesgo,var1,var2,var3,var4)
-                    #print(code_msj,nivel_riesgo)
-                    if code_msj != 27:
-                        detect_alert(code_msj,uid)
-        else:
-            [code_msj,nivel_riesgo,var1,var2,var3] = dfuzzy(num_serie,press_old,temp_old,hum_old,press_new,temp_new,hum_new,temp_con,hum_con)
-            send_fuzzy(code_msj,nivel_riesgo,var1,var2,var3)
-            #print(code_msj,nivel_riesgo)
-            if code_msj != 27:
-                detect_alert(code_msj,uid)
-       
+            
+        #### ----------- Entrada a función de detección fuzzy----------- #####
+        [code_msj,nivel_riesgo,var1,var2,var3,var4] = dfuzzy(num_serie,press_old,temp_old,hum_old,press_new,temp_new,hum_new,temp_con,hum_con)
+        send_fuzzy(code_msj,nivel_riesgo,var1,var2,var3,var4)
+        if code_msj != 27:
+            detect_alert(code_msj,uid)
+
         #### ----------- Promedio general de variables ----------- #####
         if nivel_riesgo == 0:
             if int(num_serie[2]) % 2 != 0:
-                if vec_temp[0] != 0:
-                    gral = request.json['gral']
-                    prom_gral(num_serie,gral,uid)
-
+                suma = 0
+                for i in temp_new:
+                    suma = suma + i
+                prom_temp = round((suma / len(temp_new)),1)
+                prom_hum = round(((hum_new[0] + hum_new[1]) / 2),1)
+                gral = [prom_temp,prom_hum,85]
+                prom_gral(num_serie,gral,uid)
+        
         #### ----------- Establecer data en el usuario ----------- #####
         if nivel_riesgo == 0:
             if int(num_serie[2]) % 2 != 0:
                 #IMPAR
-                if vec_temp[0] != 0:
-                    tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/hum").update({'hder':request.json['hum']})
-                    tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/temp").update({'tder':request.json['temp']})
-                    tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/press").update({'pder':request.json['press']})
+                tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/hum").update({'hder':hum_new})
+                tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/temp").update({'tder':temp_new})
+                tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/press").update({'pder':request.json['press']})
+
+                #2.0
+                temperatura = [20,20,20,20,20,20,20]
+                humedad = [70,70]
+
+                for i in range(len(temperatura)):
+                    temperatura[i] = round((temperatura[i] + rand_init.uniform (0.1, 0.5)),1)
+                for i in range(2):
+                    humedad[i] = round(humedad[i] +2 - rand_init.uniform (0, 2))
+
+                der2_ref.document("testd/der/hum").update({'hder':humedad})
+                der2_ref.document("testd/der/temp").update({'tder':temperatura})
+
             else:
                 #PAR
-                gral = request.json['gral']
-                tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/gral").update({'batt':gral[2], 'humg':gral[1], 'tempg':gral[0]})
-                tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/hum").update({'hizq':request.json['hum']})
-                tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/temp").update({'tizq':request.json['temp']})
+                suma = 0
+                for i in temp_new:
+                    suma = suma + i
+                prom_temp = round((suma / len(temp_new)),1)
+                prom_hum = round(((hum_new[0] + hum_new[1]) / 2),1)
+
+                tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/gral").update({'batt':85, 'humg':prom_hum, 'tempg':prom_temp})
+                tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/hum").update({'hizq':hum_new})
+                tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/temp").update({'tizq':temp_new})
                 tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/press").update({'piz':request.json['press']})
+
+
+            #2.0
+                temperatura = [20,20,20,20,20,20,20]
+                humedad = [70,70]
+
+                for i in range(len(temperatura)):
+                    temperatura[i] = round((temperatura[i] + rand_init.uniform (0.1, 0.5)),1)
+                for i in range(2):
+                    humedad[i] = round(humedad[i] +2 - rand_init.uniform (0, 2))
+
+                izq2_ref.document("testi/izq/hum").update({'hizq':humedad})
+                izq2_ref.document("testi/izq/temp").update({'tizq':temperatura})
 
         return jsonify({"success": True}), 200
     except Exception as e:
@@ -131,9 +171,26 @@ def crear():
         uid = list(userid)[0].id
 
         #### ----------- Obten variables nuevas del pie ----------- #####
-        temp_new = request.json['temp']
-        hum_new = request.json['hum']
         press_new = request.json['press']
+
+        if int(num_serie[2]) % 2 != 0:
+            #impar
+            temp_new = der2_ref.document("testd/der/temp").get()
+            temp_new = temp_new.to_dict()
+            temp_new = temp_new['tder']
+            
+            hum_new = der2_ref.document("testd/der/hum").get()
+            hum_new = hum_new.to_dict()
+            hum_new = hum_new['hder']
+          
+        else:
+            temp_new = izq2_ref.document("testi/izq/temp").get()
+            temp_new = temp_new.to_dict()
+            temp_new = temp_new['tizq']
+            
+            hum_new = izq2_ref.document("testi/izq/hum").get()
+            hum_new = hum_new.to_dict()
+            hum_new = hum_new['hizq']
 
         #### ----------- Obten variables pasadas del mismo pie ----------- #####
         temp_old = tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/temp").get()
@@ -173,66 +230,71 @@ def crear():
             hum_con = hum_con['hder']
             
         #### ----------- Entrada a función de detección ----------- #####
-        nivel_riesgo = 30
-        code_msj = 30
-        if int(num_serie[2]) % 2 != 0:
-            temp_new = tt_ref.document("micros/ns/mc2/"+uid+"/temp").get()
-            hum_new = tt_ref.document("micros/ns/mc2/"+uid+"/hum").get()
-            temp_new = temp_new.to_dict()
-            hum_new = hum_new.to_dict()
-            temp_new = temp_new['tizq']
-            hum_new = hum_new['hizq']
-            
-            for i in range(len(temp_new)):
-                temp_new[i] = round((temp_new[i] + rand_init.uniform (0.0, 0.3)),1)
-            
-            for i in range(2):
-                hum_new[i] = round(hum_new[i] +2 - rand_init.uniform (0, 2))
+        [code_msj,nivel_riesgo] = det(num_serie,press_old,temp_old,hum_old,press_new,temp_new,hum_new,temp_con,hum_con)
+        print(code_msj,nivel_riesgo)
+        if code_msj != 27:
+            detect_alert(code_msj,uid)
 
-            vec_temp = temp_new
-            if vec_temp[0] != 0:
-                [code_msj,nivel_riesgo] = det(num_serie,press_old,temp_old,hum_old,press_new,temp_new,hum_new,temp_con,hum_con)
-                print(code_msj,nivel_riesgo)
-                if code_msj != 27:
-                    detect_alert(code_msj,uid)
-        else:
-            [code_msj,nivel_riesgo] = det(num_serie,press_old,temp_old,hum_old,press_new,temp_new,hum_new,temp_con,hum_con)
-            print(code_msj,nivel_riesgo)
-            if code_msj != 27 or code_msj != 28:
-                detect_alert(code_msj,uid)
-
-       
         #### ----------- Promedio general de variables ----------- #####
         if nivel_riesgo == 0:
             if int(num_serie[2]) % 2 != 0:
-                if vec_temp[0] != 0:
-                    gral = [0,0,0]
-                    ctrltral = tt_ref.document("micros/ns/mc2/"+uid+"/gral").get()
-                    ctrltral = ctrltral.to_dict()
-                    gral[0] = ctrltral['tempg']
-                    gral[1] = ctrltral['humg']
-                    gral[2] = ctrltral['batt']
-                    prom_gral(num_serie,gral,uid)
-
+                suma = 0
+                for i in temp_new:
+                    suma = suma + i
+                prom_temp = round((suma / len(temp_new)),1)
+                prom_hum = round(((hum_new[0] + hum_new[1]) / 2),1)
+                gral = [prom_temp,prom_hum,85]
+                prom_gral(num_serie,gral,uid)
+        
         #### ----------- Establecer data en el usuario ----------- #####
         if nivel_riesgo == 0:
             if int(num_serie[2]) % 2 != 0:
                 #IMPAR
-                if vec_temp[0] != 0:
-                    tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/hum").update({'hder':hum_new})
-                    tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/temp").update({'tder':temp_new})
-                    tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/press").update({'pder':request.json['press']})
+                tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/hum").update({'hder':hum_new})
+                tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/temp").update({'tder':temp_new})
+                tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/press").update({'pder':request.json['press']})
+
+                #2.0
+                temperatura = [20,20,20,20,20,20,20]
+                humedad = [70,70]
+
+                for i in range(len(temperatura)):
+                    temperatura[i] = round((temperatura[i] + rand_init.uniform (0.1, 0.5)),1)
+                for i in range(2):
+                    humedad[i] = round(humedad[i] +2 - rand_init.uniform (0, 2))
+
+                der2_ref.document("testd/der/hum").update({'hder':humedad})
+                der2_ref.document("testd/der/temp").update({'tder':temperatura})
+
             else:
                 #PAR
-                gral = request.json['gral']
-                tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/gral").update({'batt':gral[2], 'humg':gral[1], 'tempg':gral[0]})
-                tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/hum").update({'hizq':request.json['hum']})
-                tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/temp").update({'tizq':request.json['temp']})
+                suma = 0
+                for i in temp_new:
+                    suma = suma + i
+                prom_temp = round((suma / len(temp_new)),1)
+                prom_hum = round(((hum_new[0] + hum_new[1]) / 2),1)
+
+                tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/gral").update({'batt':85, 'humg':prom_hum, 'tempg':prom_temp})
+                tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/hum").update({'hizq':hum_new})
+                tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/temp").update({'tizq':temp_new})
                 tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/press").update({'piz':request.json['press']})
 
-        log_ref.document("testing").update({'cmsj': [code_msj,nivel_riesgo]})
+
+            #2.0
+                temperatura = [20,20,20,20,20,20,20]
+                humedad = [70,70]
+
+                for i in range(len(temperatura)):
+                    temperatura[i] = round((temperatura[i] + rand_init.uniform (0.1, 0.5)),1)
+                for i in range(2):
+                    humedad[i] = round(humedad[i] +2 - rand_init.uniform (0, 2))
+
+                izq2_ref.document("testi/izq/hum").update({'hizq':humedad})
+                izq2_ref.document("testi/izq/temp").update({'tizq':temperatura})
+
+        #log_ref.document("testing").update({'cmsj': [code_msj,nivel_riesgo]})
         #print("holi")
-        return jsonify({"success": True, "cmsj":[code_msj,nivel_riesgo]}), 200
+        return jsonify({"success": True}), 200
     except Exception as e:
         return f"An Error Occured: {e}"
 
@@ -335,10 +397,8 @@ def prom_gral(num_serie,gral,uid):
     info_gral[0] = round((gral[2] + gral2[0]) / 2)
     info_gral[1] = round((gral[1] + gral2[1]) / 2)
     info_gral[2] = round(((gral[0] + gral2[2]) / 2),1)
-    print(gral[2],gral2[2])
     tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/gral").update({'batt':info_gral[0], 'humg':info_gral[1], 'tempg':info_gral[2]})
 
-    #print(info_gral)
 
 #### ----------- Función notificación de alerta ----------- #####
 def detect_alert(arg, uid):
