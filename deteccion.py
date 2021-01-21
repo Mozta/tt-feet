@@ -120,47 +120,46 @@ def det (num_serie,presion_old,temperatura_old,humedad_old,presion_new,temperatu
                             vecindad = vecindad + presion[psf-1+j//3,psc-1+j%3]
             
                 vecindad = (vecindad-presion[psf,psc])/8
-                cambio = abs(vecindad-presion[psf,psc])
                 # comparar cambio contra cada punto de la vecindad, si varia mucho el rango contra pocos puntos de
                 # sensado se considera como un espacio de riesgo
                 for j in range(9):
                     if psf == 0:
                         if psc == 0:
                             if (j == 5 or j == 7 or j == 8):
-                                if (abs(presion[psf-1+j//3,psc-1+j%3]-presion[psf,psc])>cambio+umbral_pres):
+                                if (abs(presion[psf-1+j//3,psc-1+j%3]-presion[psf,psc])>vecindad+umbral_pres):
                                     cont_pres = 1 + cont_pres
                         elif psc == 6:
                             if (j == 3 or j == 6 or j == 7):
-                                if (abs(presion[psf-1+j//3,psc-1+j%3]-presion[psf,psc])>cambio+umbral_pres):
+                                if (abs(presion[psf-1+j//3,psc-1+j%3]-presion[psf,psc])>vecindad+umbral_pres):
                                     cont_pres = 1 + cont_pres
                         else:
                             if (j!=0 and j!=1 and j!=2):
-                                if (abs(presion[psf-1+j//3,psc-1+j%3]-presion[psf,psc])>cambio+umbral_pres):
+                                if (abs(presion[psf-1+j//3,psc-1+j%3]-presion[psf,psc])>vecindad+umbral_pres):
                                     cont_pres = 1 + cont_pres
                     elif psf == 19:
                         if psc == 0:
                             if (j == 1 or j == 2 or j == 5):
-                                if (abs(presion[psf-1+j//3,psc-1+j%3]-presion[psf,psc])>cambio+umbral_pres):
+                                if (abs(presion[psf-1+j//3,psc-1+j%3]-presion[psf,psc])>vecindad+umbral_pres):
                                     cont_pres = 1 + cont_pres
                         elif psc == 6:
                             if (j == 0 or j == 1 or j == 3):
-                                if (abs(presion[psf-1+j//3,psc-1+j%3]-presion[psf,psc])>cambio+umbral_pres):
+                                if (abs(presion[psf-1+j//3,psc-1+j%3]-presion[psf,psc])>vecindad+umbral_pres):
                                     cont_pres = 1 + cont_pres
                         else:
                             if (j!=6 and j!=7 and j!=8):
-                                if (abs(presion[psf-1+j//3,psc-1+j%3]-presion[psf,psc])>cambio+umbral_pres):
+                                if (abs(presion[psf-1+j//3,psc-1+j%3]-presion[psf,psc])>vecindad+umbral_pres):
                                     cont_pres = 1 + cont_pres
                     else:
                         if psc == 0:
                             if (j!=0 and j!=3 and j!=6):
-                                if (abs(presion[psf-1+j//3,psc-1+j%3]-presion[psf,psc])>cambio+umbral_pres):
+                                if (abs(presion[psf-1+j//3,psc-1+j%3]-presion[psf,psc])>vecindad+umbral_pres):
                                     cont_pres = 1 + cont_pres
                         elif psc == 6:
                             if (j!=2 and j!=5 and j!=8):
-                                if (abs(presion[psf-1+j//3,psc-1+j%3]-presion[psf,psc])>cambio+umbral_pres):
+                                if (abs(presion[psf-1+j//3,psc-1+j%3]-presion[psf,psc])>vecindad+umbral_pres):
                                     cont_pres = 1 + cont_pres
                         else:
-                            if (abs(presion[psf-1+j//3,psc-1+j%3]-presion[psf,psc])>cambio+umbral_pres):
+                            if (abs(presion[psf-1+j//3,psc-1+j%3]-presion[psf,psc])>vecindad+umbral_pres):
                                 cont_pres = 1 + cont_pres
             #si existen muchos puntos de sensado con cambio entonces se ignora                   
                 print(cont_pres,promedio)
