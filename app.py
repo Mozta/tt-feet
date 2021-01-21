@@ -293,9 +293,9 @@ def crear():
                 izq2_ref.document("testi/izq/hum").update({'hizq':humedad})
                 izq2_ref.document("testi/izq/temp").update({'tizq':temperatura})
 
-        #log_ref.document("testing").update({'cmsj': [code_msj,nivel_riesgo]})
+        log_ref.document("testing").update({'cmsj': [code_msj,nivel_riesgo]})
         #print("holi")
-        return jsonify({"success": True}), 200
+        return jsonify({"success": True, 'cmsj': [code_msj,nivel_riesgo]}), 200
     except Exception as e:
         return f"An Error Occured: {e}"
 
