@@ -48,7 +48,7 @@ def det (num_serie,presion_old,temperatura_old,humedad_old,presion_new,temperatu
         #verificar pisada completa
         suma_pres = presion_new[i] + suma_pres
     promedio = suma_pres/(np.size(presion_new))
-    umbral_pres = (umbral_pres / promedio) * 0.15
+    umbral_pres = (umbral_pres / promedio) * 0.20
     if promedio<umbral_sis:
         #print(promedio)
         caso = 27
@@ -162,7 +162,7 @@ def det (num_serie,presion_old,temperatura_old,humedad_old,presion_new,temperatu
                             if (presion[psf-1+j//3,psc-1+j%3]>cambio):
                                 cont_pres = 1 + cont_pres
             #si existen muchos puntos de sensado con cambio entonces se ignora                   
-            if (cont_pres>0 and cont_pres<6):
+            if (cont_pres>0 and cont_pres<15):
                 indicadorpres = 1
                 sens_pres.append(i)
                 signopres.append(presion[psf,psc]-presionold[psf,psc])
