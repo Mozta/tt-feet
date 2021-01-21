@@ -243,7 +243,7 @@ def crear():
                 for i in temp_new:
                     suma = suma + i
                 prom_temp = round((suma / len(temp_new)),1)
-                prom_hum = round(((hum_new[0] + hum_new[1]) / 2),1)
+                prom_hum = round(((hum_new[0] + hum_new[1]) / 2))
                 gral = [prom_temp,prom_hum,85]
                 prom_gral(num_serie,gral,uid)
         
