@@ -71,7 +71,7 @@ def dfuzzy (num_serie,presion_old,temperatura_old,humedad_old,presion_new,temper
             return(caso, anormal, signohum, signotemp, signopres, umbral_pres)
     # verificar humedad en rango optimo entre 40 y 60%
     for i in range(len(humedad_new)):
-        if (humedad_new[i]> 75 or  humedad_new[i]<40):
+        if (humedad_new[i]> 90 or  humedad_new[i]<40):
             caso = 28
             anormal = 1
             return(caso, anormal, signohum, signotemp, signopres, umbral_pres)
