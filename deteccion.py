@@ -4,7 +4,7 @@ def det (num_serie,presion_old,temperatura_old,humedad_old,presion_new,temperatu
     umbral_pres = 0.3
     umbral_temp = 2.2
     umbral_hum = 5
-    umbral_sis = 0.2
+    umbral_sis = 0.25
     anormal = 0
 
     #convertir vector de presion actual a matriz de 7x20
@@ -48,7 +48,7 @@ def det (num_serie,presion_old,temperatura_old,humedad_old,presion_new,temperatu
         #verificar pisada completa
         suma_pres = presion_new[i] + suma_pres
     promedio = suma_pres/(np.size(presion_new))
-    umbral_pres = (umbral_pres / promedio) * 0.20
+    umbral_pres = (umbral_pres / promedio) * 0.15
     if promedio<umbral_sis:
         #print(promedio)
         caso = 27
