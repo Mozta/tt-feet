@@ -87,6 +87,7 @@ def det (num_serie,presion_old,temperatura_old,humedad_old,presion_new,temperatu
             #comparar valor contra momento anterior
             if abs(presion[psf,psc]-presionold[psf, psc])>=umbral_pres:
                 # Se obtiene el promedio de la vecindad para registrar el cambio promedio
+                print(i)
                 for j in range(9):
                     if psf == 0:
                         if psc == 0:
@@ -126,47 +127,49 @@ def det (num_serie,presion_old,temperatura_old,humedad_old,presion_new,temperatu
                     if psf == 0:
                         if psc == 0:
                             if (j == 5 or j == 7 or j == 8):
-                                if (presion[psf-1+j//3,psc-1+j%3]>cambio):
+                                if (abs(presion[psf-1+j//3,psc-1+j%3]-presion[psf,psc])>cambio+umbral_pres):
                                     cont_pres = 1 + cont_pres
                         elif psc == 6:
                             if (j == 3 or j == 6 or j == 7):
-                                if (presion[psf-1+j//3,psc-1+j%3]>cambio):
+                                if (abs(presion[psf-1+j//3,psc-1+j%3]-presion[psf,psc])>cambio+umbral_pres):
                                     cont_pres = 1 + cont_pres
                         else:
                             if (j!=0 and j!=1 and j!=2):
-                                if (presion[psf-1+j//3,psc-1+j%3]>cambio):
+                                if (abs(presion[psf-1+j//3,psc-1+j%3]-presion[psf,psc])>cambio+umbral_pres):
                                     cont_pres = 1 + cont_pres
                     elif psf == 19:
                         if psc == 0:
                             if (j == 1 or j == 2 or j == 5):
-                                if (presion[psf-1+j//3,psc-1+j%3]>cambio):
+                                if (abs(presion[psf-1+j//3,psc-1+j%3]-presion[psf,psc])>cambio+umbral_pres):
                                     cont_pres = 1 + cont_pres
                         elif psc == 6:
                             if (j == 0 or j == 1 or j == 3):
-                                if (presion[psf-1+j//3,psc-1+j%3]>cambio):
+                                if (abs(presion[psf-1+j//3,psc-1+j%3]-presion[psf,psc])>cambio+umbral_pres):
                                     cont_pres = 1 + cont_pres
                         else:
                             if (j!=6 and j!=7 and j!=8):
-                                if (presion[psf-1+j//3,psc-1+j%3]>cambio):
+                                if (abs(presion[psf-1+j//3,psc-1+j%3]-presion[psf,psc])>cambio+umbral_pres):
                                     cont_pres = 1 + cont_pres
                     else:
                         if psc == 0:
                             if (j!=0 and j!=3 and j!=6):
-                                if (presion[psf-1+j//3,psc-1+j%3]>cambio):
+                                if (abs(presion[psf-1+j//3,psc-1+j%3]-presion[psf,psc])>cambio+umbral_pres):
                                     cont_pres = 1 + cont_pres
                         elif psc == 6:
                             if (j!=2 and j!=5 and j!=8):
-                                if (presion[psf-1+j//3,psc-1+j%3]>cambio):
+                                if (abs(presion[psf-1+j//3,psc-1+j%3]-presion[psf,psc])>cambio+umbral_pres):
                                     cont_pres = 1 + cont_pres
                         else:
-                            if (presion[psf-1+j//3,psc-1+j%3]>cambio):
+                            if (abs(presion[psf-1+j//3,psc-1+j%3]-presion[psf,psc])>cambio+umbral_pres):
                                 cont_pres = 1 + cont_pres
             #si existen muchos puntos de sensado con cambio entonces se ignora                   
-            if (cont_pres>0 and cont_pres<15):
+                print(cont_pres,promedio)
+                #print(vecindad,cambio)
+            if (cont_pres>0 and cont_pres<5):
                 indicadorpres = 1
                 sens_pres.append(i)
                 signopres.append(presion[psf,psc]-presionold[psf,psc])
-
+        print(len(signopres))
                 
         #Analisis del sistema de temperatura
         cont_temp = 0
