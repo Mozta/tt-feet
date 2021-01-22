@@ -256,7 +256,7 @@ def crear():
                 tt_ref.document("micros/ns/"+num_serie+"/"+uid+"/press").update({'pder':request.json['press']})
 
                 #2.0
-                temperatura = [20,20,20,20,20,20,20]
+                temperatura = [21,21,21,21,21,21,21]
                 humedad = [70,70]
 
                 for i in range(len(temperatura)):
