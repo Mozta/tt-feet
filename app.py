@@ -403,7 +403,7 @@ def prom_gral(num_serie,gral,uid):
 
 #### ----------- Función notificación de alerta ----------- #####
 def detect_alert(arg, uid):
-    muid = str(randint(1, 1000))
+    muid = str(random.randint(1, 1000))
     #muid = "1111"
     msj_ref.document("msj"+muid).set({'cmsj': arg, 'userUid': uid})
         
