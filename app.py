@@ -282,7 +282,7 @@ def crear():
 
 
             #2.0
-                temperatura = [20,20,20,20,20,20,20]
+                temperatura = [21,21,21,21,21,21,21]
                 humedad = [70,70]
 
                 for i in range(len(temperatura)):
@@ -403,8 +403,8 @@ def prom_gral(num_serie,gral,uid):
 
 #### ----------- Función notificación de alerta ----------- #####
 def detect_alert(arg, uid):
-    #muid = str(randint(1, 1000))
-    muid = "1111"
+    muid = str(randint(1, 1000))
+    #muid = "1111"
     msj_ref.document("msj"+muid).set({'cmsj': arg, 'userUid': uid})
         
 
